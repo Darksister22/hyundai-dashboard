@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+/* =====================================================================
+   Hyundai Iraq — dashboard theme
+   Anchor: Hyundai navy. Everything else is quiet so the brand carries it.
+   ===================================================================== */
+@theme {
+  /* Brand */
+  --color-navy: #002c5f;        /* Hyundai primary */
+  --color-navy-700: #013d82;    /* hover / lighter brand */
+  --color-navy-900: #001a3a;    /* deep, sidebar base */
+  --color-sky: #0073c6;         /* interactive accent (links, focus) */
+  --color-sky-100: #e6f0fa;     /* accent tint */
+
+  /* Neutrals */
+  --color-app: #f4f5f7;         /* app background */
+  --color-surface: #ffffff;     /* cards, panels */
+  --color-line: #e3e6ea;        /* borders / dividers */
+  --color-line-strong: #cdd3da;
+  --color-ink: #1a1d21;         /* primary text */
+  --color-ink-muted: #5b636e;   /* secondary text */
+  --color-ink-faint: #8b929c;   /* tertiary / placeholder */
+
+  /* Status */
+  --color-danger: #c0392b;
+  --color-danger-50: #fdecea;
+  --color-ok: #1e7e54;
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  /* Type */
+  --font-sans: var(--font-inter), system-ui, "Segoe UI", Tahoma, Arial,
+    sans-serif;
+}
+
+/* ---------------------------------------------------------------------
+   Dark theme — override the semantic tokens under .dark on <html>.
+   Brand navy stays the anchor; surfaces/ink/lines flip.
+   --------------------------------------------------------------------- */
+.dark {
+  --color-app: #0f1216;
+  --color-surface: #171b21;
+  --color-line: #262b33;
+  --color-line-strong: #39414c;
+  --color-ink: #e8eaed;
+  --color-ink-muted: #a6aeb9;
+  --color-ink-faint: #6c7480;
+
+  --color-navy: #1e5fa8;     /* brighter primary for contrast on dark */
+  --color-navy-700: #2a72c2; /* hover */
+  --color-sky: #4a9fe0;
+  --color-sky-100: #16324c;  /* active tint */
+
+  --color-danger: #ef6a5c;
+  --color-danger-50: #3a1e1c;
+  --color-ok: #35b07a;
+
+  color-scheme: dark; /* native selects, scrollbars, color/number inputs */
+}
+
+/* ---------------------------------------------------------------------
+   Base
+   --------------------------------------------------------------------- */
+html,
+body {
+  background: var(--color-app);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  border-color: var(--color-line);
+}
+
+/* Visible keyboard focus everywhere. */
+:focus-visible {
+  outline: 2px solid var(--color-sky);
+  outline-offset: 2px;
+}
+
+/* Quiet, consistent scrollbars. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-line-strong);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
