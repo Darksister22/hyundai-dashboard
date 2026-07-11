@@ -2,6 +2,8 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { slugify } from "@/lib/utils";
+import { removeUnreferenced } from "@/lib/storage";
+import { BUCKET } from "@/lib/upload";
 import type { CarFormState, Tri } from "@/types/car-form";
 
 type Row = Record<string, unknown>;
@@ -66,6 +68,50 @@ function carScalars(s: CarFormState): Row {
     ...tri("convenience_heading", s.convenience.heading),
     convenience_image: s.convenience.image,
   };
+}
+
+/* ---------------------------------------------------------------------
+ * Storage garbage collection (runs after a successful save)
+ * ------------------------------------------------------------------- */
+
+/** Every media URL the form state still references. */
+function collectCarUrls(s: CarFormState): (string | null)[] {
+  return [
+    s.hero.image,
+    s.design.heroImage,
+    s.performance.heroImage,
+    s.performance.closingImage,
+    s.convenience.image,
+    ...s.highlights.map((h) => h.image),
+    ...s.design.exterior.map((c) => c.image),
+    ...s.design.interior.map((c) => c.image),
+    ...s.additionalDesign.items.map((it) => it.image),
+    ...s.safety.cards.map((c) => c.image),
+    ...s.convenience.cards.map((c) => c.image),
+    ...s.gallery.map((g) => g.image),
+    ...s.visualizer.threeSixty.map((c) => c.image),
+    ...s.visualizer.spin.flatMap((c) => c.frames),
+  ];
+}
+
+/**
+ * Delete every file under cars/{id}/ that the saved state no longer
+ * references (replaced heroes, re-uploaded frame sets, removed cards...).
+ * Best-effort: a cleanup failure must never fail the save — but it is
+ * logged, never swallowed silently.
+ */
+async function gcCarStorage(supabase: SupabaseClient, s: CarFormState) {
+  try {
+    const removed = await removeUnreferenced(
+      supabase,
+      BUCKET,
+      `cars/${s.id}`,
+      collectCarUrls(s)
+    );
+    if (removed > 0) console.info(`[car-submit] storage GC removed ${removed} stale file(s)`);
+  } catch (e) {
+    console.warn("[car-submit] storage GC failed (save succeeded):", e);
+  }
 }
 
 async function insertRows(supabase: SupabaseClient, table: string, rows: Row[]) {
@@ -225,6 +271,7 @@ export async function submitCar(s: CarFormState): Promise<{ slug: string }> {
   if (carErr) throw new Error(`cars: ${carErr.message}`);
 
   await insertChildren(supabase, s);
+  await gcCarStorage(supabase, s);
   return { slug };
 }
 
@@ -246,5 +293,6 @@ export async function updateCar(s: CarFormState): Promise<{ id: string }> {
 
   await deleteChildren(supabase, s.id);
   await insertChildren(supabase, s);
+  await gcCarStorage(supabase, s);
   return { id: s.id };
 }

@@ -1,5 +1,5 @@
 "use client";
-
+import { deleteByUrl } from "@/lib/storage";
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { Loader2, Trash2 } from "lucide-react";
@@ -62,7 +62,7 @@ function SpinFrames({
 
   const filled = color.frames.filter(Boolean).length;
 
-  async function handleFiles(files: FileList | null) {
+  async function handleFiles(files: File[] | null) {
     if (!files || files.length === 0) return;
     const list = Array.from(files)
       .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
@@ -76,12 +76,14 @@ function SpinFrames({
       for (let i = 0; i < list.length; i++) {
         setProgress(i + 1);
         const idx = String(i + 1).padStart(2, "0");
+        const prev = frames[i];  
         const url = await uploadImage(
           list[i],
           `cars/${carId}/visualizer/spin/${color.key}/frame-${idx}-${token}`
         );
         frames[i] = url;
         onChange({ ...color, frames: frames.slice() });
+        if (prev && prev !== url) void deleteByUrl(prev);   
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
@@ -171,8 +173,8 @@ function SpinFrames({
         multiple
         className="hidden"
         onChange={(e) => {
-          const files = e.target.files;
-          e.target.value = "";
+          const files = e.target.files ? Array.from(e.target.files) : null;
+          e.target.value = ""; // allow re-selecting the same files
           handleFiles(files);
         }}
       />

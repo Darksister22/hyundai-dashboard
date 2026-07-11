@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
   },
   // If you hit a cross-origin dev warning, add your LAN origin here
   // (must live INSIDE nextConfig):
-  // allowedDevOrigins: ["http://192.168.1.10:3000"],
+  allowedDevOrigins: ["http://192.168.1.10:3000"],
 };
 
 export default nextConfig;

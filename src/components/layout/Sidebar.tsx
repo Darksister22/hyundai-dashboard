@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Car,
   GalleryHorizontalEnd,
+  Inbox,
   MapPin,
   LogOut,
 } from "lucide-react";
@@ -16,6 +17,8 @@ const NAV = [
   { href: "/cars", label: "Cars", icon: Car },
   { href: "/hero-banners", label: "Hero banners", icon: GalleryHorizontalEnd },
   { href: "/find-us", label: "Find us", icon: MapPin },
+  { href: "/contact", label: "Contact", icon: Inbox },
+
 ] as const;
 
 export function Sidebar() {

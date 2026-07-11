@@ -3,16 +3,18 @@
 import { useRef, useState } from "react";
 import { Loader2, X, Film, ImageIcon, AlertCircle, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { uploadMedia, getVideoDuration, MAX_VIDEO_SECONDS } from "@/lib/upload";
+import { uploadMedia, getVideoDuration, MAX_VIDEO_SECONDS,BUCKET } from "@/lib/upload";
 import { friendlyError } from "@/lib/errors";
 import { uuidv4 } from "@/lib/uuid";
 import { TriField } from "@/components/form/primitives";
 import { emptyTri, type Tri } from "@/types/car-form";
 import type { Banner } from "@/types/db";
+import { deleteByUrl, removeUnreferenced } from "@/lib/storage";
 
 export interface BannerDraft {
   id: string;
   title: Tri;
+  tagline: Tri;          // ← new
   mediaType: "image" | "video";
   mediaUrl: string | null;
   carId: string | null;
@@ -26,6 +28,11 @@ export function bannerToDraft(b: Banner): BannerDraft {
       en: b.title_en ?? "",
       ku: b.title_ku ?? "",
     },
+    tagline: {
+      ar: b.tagline_ar ?? "",
+      en: b.tagline_en ?? "",
+      ku: b.tagline_ku ?? "",
+    },
     mediaType: b.media_type,
     mediaUrl: b.media_url,
     carId: b.car_id,
@@ -33,9 +40,8 @@ export function bannerToDraft(b: Banner): BannerDraft {
 }
 
 export function newBannerDraft(): BannerDraft {
-  return { id: uuidv4(), title: emptyTri(), mediaType: "image", mediaUrl: null, carId: null };
+  return { id: uuidv4(), title: emptyTri(), tagline: emptyTri(), mediaType: "image", mediaUrl: null, carId: null };
 }
-
 export function BannerEditor({
   draft: initial,
   isNew,
@@ -58,6 +64,7 @@ export function BannerEditor({
   async function handleFile(file: File | undefined) {
     if (!file) return;
     setError(null);
+    const prevUrl = draft.mediaUrl; 
     const isVideo = file.type.startsWith("video/");
     if (isVideo) {
       try {
@@ -76,6 +83,7 @@ export function BannerEditor({
       const token = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
       const { url, type } = await uploadMedia(file, `banners/${draft.id}/media-${token}`);
       setDraft((d) => ({ ...d, mediaUrl: url, mediaType: type }));
+      if (prevUrl && prevUrl !== url) void deleteByUrl(prevUrl);
     } catch (e) {
       setError(friendlyError(e instanceof Error ? e.message : "Upload failed"));
     } finally {
@@ -100,6 +108,9 @@ export function BannerEditor({
       title_ar: v(draft.title.ar),
       title_en: v(draft.title.en),
       title_ku: v(draft.title.ku),
+      tagline_ar: v(draft.tagline.ar),
+      tagline_en: v(draft.tagline.en),
+      tagline_ku: v(draft.tagline.ku),
       media_type: draft.mediaType,
       media_url: draft.mediaUrl,
       car_id: draft.carId,
@@ -125,6 +136,10 @@ export function BannerEditor({
       setError(friendlyError(err.message));
       setSaving(false);
       return;
+    }try {
+      await removeUnreferenced(supabase, BUCKET, `banners/${draft.id}`, [draft.mediaUrl]);
+    } catch (e) {
+      console.warn("[banner] storage GC failed (save succeeded):", e);
     }
     onSaved();
   }
@@ -216,11 +231,18 @@ export function BannerEditor({
               }}
             />
           </div>
-
+          
+          
           <TriField
             label="Title"
             value={draft.title}
             onChange={(title) => setDraft((d) => ({ ...d, title }))}
+          />
+
+          <TriField
+            label="Tagline"
+            value={draft.tagline}
+            onChange={(tagline) => setDraft((d) => ({ ...d, tagline }))}
           />
 
           {/* Linked car */}

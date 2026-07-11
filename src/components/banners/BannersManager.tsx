@@ -27,9 +27,10 @@ import {
 } from "./BannerEditor";
 
 const SELECT =
-  "id,sort_order,title_ar,title_en,title_ku,media_type,media_url,car_id,car:cars(id,name_ar,name_en,name_ku)";
+  "id,sort_order,title_ar,title_en,title_ku,tagline_ar,tagline_en,tagline_ku,media_type,media_url,car_id,car:cars(id,name_ar,name_en,name_ku)";
 
-export function BannersManager() {
+
+  export function BannersManager() {
   const { confirm, alert } = useDialog();
   const [banners, setBanners] = useState<Banner[]>([]);
   const [cars, setCars] = useState<{ id: string; label: string }[]>([]);

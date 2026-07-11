@@ -252,7 +252,7 @@ create table locations (
   province    text,                 -- one of Iraq's governorates
   city_ar text, city_en text, city_ku text,
   landmark_ar text, landmark_en text, landmark_ku text,
-  map_url     text,                 -- full Google Maps link
+  map_url text,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
 );

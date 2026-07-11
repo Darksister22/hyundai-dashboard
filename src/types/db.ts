@@ -160,6 +160,9 @@ export interface Banner {
   title_ar: string | null;
   title_en: string | null;
   title_ku: string | null;
+  tagline_ar: string | null;
+  tagline_en: string | null;
+  tagline_ku: string | null;
   media_type: "image" | "video";
   media_url: string | null;
   car_id: string | null;
@@ -183,4 +186,25 @@ export interface LocationRow {
   landmark_en: string | null;
   landmark_ku: string | null;
   map_url: string | null;
+}
+
+// ---- Contact submissions --------------------------------------------
+export type ContactStatus = "new" | "in_progress" | "resolved";
+export type ContactInquiry = "general" | "sales" | "service" | "complaint";
+
+export interface ContactSubmission {
+  id: string;
+  created_at: string;
+  gender: "male" | "female" | null;
+  first_name: string;
+  last_name: string;
+  email: string | null;
+  phone: string;
+  inquiry_type: ContactInquiry;
+  comments: string | null;
+  attachments: string[];
+  consent_marketing: boolean;
+  opted_out: boolean;
+  privacy_ack: boolean;
+  status: ContactStatus;
 }
