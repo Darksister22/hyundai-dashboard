@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Loader2, AlertCircle } from "lucide-react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { friendlyError } from "@/lib/errors";
+import { homeFor, type Role } from "@/lib/roles";
+
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,7 +26,7 @@ export default function LoginPage() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: signIn, error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password,
     });
@@ -33,7 +35,13 @@ export default function LoginPage() {
       setLoading(false);
       return;
     }
-    router.push("/cars");
+    // Land on the section this role can actually open.
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", signIn.user.id)
+      .maybeSingle();
+    router.push(homeFor((profile?.role ?? null) as Role | null));
     router.refresh();
   }
 

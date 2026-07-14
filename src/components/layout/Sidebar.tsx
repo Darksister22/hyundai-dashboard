@@ -10,6 +10,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { canAccess, type Role } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/client";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -18,12 +19,12 @@ const NAV = [
   { href: "/hero-banners", label: "Hero banners", icon: GalleryHorizontalEnd },
   { href: "/find-us", label: "Find us", icon: MapPin },
   { href: "/contact", label: "Contact", icon: Inbox },
-
 ] as const;
 
-export function Sidebar() {
+export function Sidebar({ role }: { role: Role }) {
   const pathname = usePathname();
   const router = useRouter();
+  const nav = NAV.filter((item) => canAccess(role, item.href));
 
   async function signOut() {
     const supabase = createClient();
@@ -49,7 +50,7 @@ export function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-        {NAV.map(({ href, label, icon: Icon }) => {
+        {nav.map(({ href, label, icon: Icon }) => {
           const active =
             pathname === href || pathname.startsWith(href + "/");
           return (
